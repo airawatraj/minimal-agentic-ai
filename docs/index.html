@@ -456,13 +456,43 @@ uv run src/agent.py</code></pre>
 import inspect
 import json
 import os
+from pathlib import Path
 from openai import OpenAI
+
+def _load_env():
+    """Load local .env file into environment if present."""
+    candidates = [Path(".env")]
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+    for path in candidates:
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    if v.startswith(('"', "'")):
+                        quote = v[0]
+                        end_idx = v.find(quote, 1)
+                        v = v[1:end_idx] if end_idx != -1 else v.strip(quote)
+                    else:
+                        for sep in (" #", "\t#"):
+                            if sep in v:
+                                v = v.split(sep, 1)[0]
+                        v = v.strip()
+                    os.environ.setdefault(k, v)
+            break
+
+_load_env()
 
 client = OpenAI(
     base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
     api_key=os.getenv("COGNI_API_KEY", "none"),
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
+
 
 # --- 1. Tool Registry ---
 def add_numbers(a: float, b: float) -> str:
@@ -491,13 +521,13 @@ def function_to_schema(func):
     type_map = {int: "integer", float: "number", str: "string", bool: "boolean"}
     properties = {}
     required = []
-    
+
     for name, param in sig.parameters.items():
         param_type = type_map.get(param.annotation, "string")
         properties[name] = {"type": param_type}
         if param.default == inspect.Parameter.empty:
             required.append(name)
-            
+
     return {
         "type": "function",
         "function": {
@@ -536,43 +566,48 @@ def execute_single_tool(call) -> dict:
     }
 
 # --- 3. ReAct Control Loop with Parallel Tool Execution ---
-prompt = "Divide 50 by 0. If that fails, divide 50 by 2 instead."
-messages = [{"role": "user", "content": prompt}]
+def run_agent(prompt: str):
+    messages = [{"role": "user", "content": prompt}]
+    max_turns = 5
+    turn = 0
 
-MAX_TURNS = 5
-turn = 0
+    print(f"User Query: {prompt}\n")
 
-print(f"User Query: {prompt}\n")
+    while turn < max_turns:
+        turn += 1
+        print(f"--- Turn {turn} ---")
 
-while turn < MAX_TURNS:
-    turn += 1
-    print(f"--- Turn {turn} ---")
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+            temperature=0.0,
+        )
 
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        tools=tools,
-        tool_choice="auto",
-        temperature=0.0,
-    )
+        assistant_message = response.choices[0].message
+        messages.append(assistant_message)
 
-    assistant_message = response.choices[0].message
-    messages.append(assistant_message)
+        if not assistant_message.tool_calls:
+            print(f"\nFinal Answer:\n{assistant_message.content}")
+            return assistant_message.content
 
-    if not assistant_message.tool_calls:
-        print(f"\nFinal Answer:\n{assistant_message.content}")
-        break
+        # Parallel tool dispatch: Execute all returned tool calls concurrently
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            observations = list(executor.map(execute_single_tool, assistant_message.tool_calls))
 
-    # Parallel tool dispatch: Execute all returned tool calls concurrently
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        observations = list(executor.map(execute_single_tool, assistant_message.tool_calls))
+        # Append observations in order
+        for obs in observations:
+            print(f"Observation Fed Back: {obs['content']}")
+            messages.append(obs)
+    else:
+        print("Guardrail hit: Max turns exhausted.")
+        return None
 
-    # Append observations in order
-    for obs in observations:
-        print(f"Observation Fed Back: {obs['content']}")
-        messages.append(obs)
-else:
-    print("Guardrail hit: Max turns exhausted.")</code></pre>
+if __name__ == "__main__":
+    test_prompt = "Divide 50 by 0. If that fails, divide 50 by 2 instead."
+    run_agent(test_prompt)
+</code></pre>
       </div>
     </div>
 
@@ -599,11 +634,40 @@ from typing import Literal, Optional
 from openai import OpenAI
 from pydantic import BaseModel
 
+def _load_env():
+    """Load local .env file into environment if present."""
+    candidates = [Path(".env")]
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+    for path in candidates:
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    if v.startswith(('"', "'")):
+                        quote = v[0]
+                        end_idx = v.find(quote, 1)
+                        v = v[1:end_idx] if end_idx != -1 else v.strip(quote)
+                    else:
+                        for sep in (" #", "\t#"):
+                            if sep in v:
+                                v = v.split(sep, 1)[0]
+                        v = v.strip()
+                    os.environ.setdefault(k, v)
+            break
+
+_load_env()
+
 client = OpenAI(
     base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
     api_key=os.getenv("COGNI_API_KEY", "none"),
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
+
 
 STATE_FILE = Path("agent_checkpoint.json")
 
@@ -758,14 +822,18 @@ if __name__ == "__main__":
         "Write a Python function named `remove_vowels(s: str) -> str` "
         "that removes vowels (a, e, i, o, u) from a string."
     )
-    
+
+    # Clean any stale checkpoint
+    STATE_FILE.unlink(missing_ok=True)
+
     # Run 1: Generates code, dumps checkpoint, and exits cleanly
     print("--- Phase A: Initial Generation & State Suspension ---")
     run_graph(task_input)
 
     # Run 2: Simulating resuming execution after human verifies the JSON file
     print("\n--- Phase B: Resuming from Disk with Approval ---")
-    run_graph(task_input, approval_override=True)</code></pre>
+    run_graph(task_input, approval_override=True)
+</code></pre>
       </div>
     </div>
 
@@ -791,9 +859,37 @@ if __name__ == "__main__":
         <pre><code class="language-python" id="code-3">import inspect
 import json
 import os
+from pathlib import Path
 import sqlite3
 from typing import List
 from openai import OpenAI
+
+def _load_env():
+    """Load local .env file into environment if present."""
+    candidates = [Path(".env")]
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+    for path in candidates:
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    if v.startswith(('"', "'")):
+                        quote = v[0]
+                        end_idx = v.find(quote, 1)
+                        v = v[1:end_idx] if end_idx != -1 else v.strip(quote)
+                    else:
+                        for sep in (" #", "\t#"):
+                            if sep in v:
+                                v = v.split(sep, 1)[0]
+                        v = v.strip()
+                    os.environ.setdefault(k, v)
+            break
+
+_load_env()
 
 client = OpenAI(
     base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
@@ -801,23 +897,29 @@ client = OpenAI(
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
 
+
+
 # --- 1. SQLite In-Memory Setup ---
-conn = sqlite3.connect(":memory:")
-cur = conn.cursor()
-cur.execute("CREATE TABLE employees (id INT, name TEXT, department TEXT, salary INT);")
-cur.executemany(
-    "INSERT INTO employees VALUES (?, ?, ?, ?);",
-    [
-        (1, "Alice Smith", "Engineering", 145000),
-        (2, "Bob Jones", "Marketing", 95000),
-        (3, "Charlie Brown", "Engineering", 160000),
-        (4, "Dana White", "Sales", 110000),
-        (5, "Evan Wright", "Engineering", 135000),
-        (6, "Fiona Gallagher", "Finance", 125000),
-        (7, "George Clark", "Sales", 98000),
-    ],
-)
-conn.commit()
+def create_connection():
+    conn = sqlite3.connect(":memory:")
+    cur = conn.cursor()
+    cur.execute("CREATE TABLE employees (id INT, name TEXT, department TEXT, salary INT);")
+    cur.executemany(
+        "INSERT INTO employees VALUES (?, ?, ?, ?);",
+        [
+            (1, "Alice Smith", "Engineering", 145000),
+            (2, "Bob Jones", "Marketing", 95000),
+            (3, "Charlie Brown", "Engineering", 160000),
+            (4, "Dana White", "Sales", 110000),
+            (5, "Evan Wright", "Engineering", 135000),
+            (6, "Fiona Gallagher", "Finance", 125000),
+            (7, "George Clark", "Sales", 98000),
+        ],
+    )
+    conn.commit()
+    return conn
+
+conn = create_connection()
 
 # --- 2. Hardened Tools with Payload Ceilings ---
 def get_schema() -> str:
@@ -913,9 +1015,11 @@ def run_db_agent(query: str):
     ]
     print(f"\nContext size before eviction: {sum(len(json.dumps(m))//4 for m in messages)} tokens")
     print(f"Context size after eviction:  {sum(len(json.dumps(m))//4 for m in evicted_history)} tokens")
+    return messages, evicted_history
 
 if __name__ == "__main__":
-    run_db_agent("Find the highest paid employee in Engineering and their salary.")</code></pre>
+    run_db_agent("Find the highest paid employee in Engineering and their salary.")
+</code></pre>
       </div>
     </div>
 
@@ -992,7 +1096,18 @@ def _load_env():
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)
-                    os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+                    k = k.strip()
+                    v = v.strip()
+                    if v.startswith(('"', "'")):
+                        quote = v[0]
+                        end_idx = v.find(quote, 1)
+                        v = v[1:end_idx] if end_idx != -1 else v.strip(quote)
+                    else:
+                        for sep in (" #", "\t#"):
+                            if sep in v:
+                                v = v.split(sep, 1)[0]
+                        v = v.strip()
+                    os.environ.setdefault(k, v)
             break
 
 _load_env()
@@ -1002,6 +1117,8 @@ client = OpenAI(
     api_key=os.getenv("COGNI_API_KEY", "none"),
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
+
 
 # --- 1. Database & Tools Setup ---
 def init_db():
@@ -1147,6 +1264,7 @@ def execute_agent(query: str) -> RunResult:
 
         messages.append(msg.model_dump())
 
+
         if not msg.tool_calls:
             return RunResult(
                 final_text=msg.content or "",
@@ -1217,6 +1335,7 @@ TEST_CASES = [
                 or "146667" in res.final_text
                 or "146,667" in res.final_text
             )
+
             and res.turns <= 4
         ),
     },
@@ -1258,7 +1377,8 @@ def run_evals() -> int:
 
 if __name__ == "__main__":
     exit_code = run_evals()
-    sys.exit(exit_code)</code></pre>
+    sys.exit(exit_code)
+</code></pre>
       </div>
     </div>
 
@@ -1282,6 +1402,7 @@ if __name__ == "__main__":
         <pre><code class="language-python" id="code-5">import inspect
 import json
 import os
+from pathlib import Path
 import re
 import sqlite3
 import time
@@ -1289,11 +1410,40 @@ from typing import List
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
+def _load_env():
+    """Load local .env file into environment if present."""
+    candidates = [Path(".env")]
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+    for path in candidates:
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    if v.startswith(('"', "'")):
+                        quote = v[0]
+                        end_idx = v.find(quote, 1)
+                        v = v[1:end_idx] if end_idx != -1 else v.strip(quote)
+                    else:
+                        for sep in (" #", "\t#"):
+                            if sep in v:
+                                v = v.split(sep, 1)[0]
+                        v = v.strip()
+                    os.environ.setdefault(k, v)
+            break
+
+_load_env()
+
 client = OpenAI(
     base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
     api_key=os.getenv("COGNI_API_KEY", "none"),
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
+
 
 # 1. Sandbox Database Fixture
 conn = sqlite3.connect(":memory:")
@@ -1360,7 +1510,7 @@ class SessionContext(BaseModel):
 
 def execute_production_agent(query: str):
     start = time.time()
-    
+
     # 1. Turn-0 Fast Path (0ms inference cost)
     if pre_execution_guard(query):
         return {
@@ -1382,7 +1532,7 @@ def execute_production_agent(query: str):
     turn = 0
     while turn < 4:
         turn += 1
-        
+
         # Guardrail: Check Token Budget
         current_tokens = sum(len(json.dumps(m)) // 4 for m in ctx.messages)
         if current_tokens > ctx.max_token_budget:
@@ -1420,7 +1570,8 @@ if __name__ == "__main__":
 
     print("\n--- 2. Optimized Query Execution (Inlined Schema) ---")
     res_query = execute_production_agent("Who has the lowest salary in Sales?")
-    print(f"Turns: {res_query['turns']} | Time: {res_query['duration']}s | Output: {res_query['output'].strip()[:80]}...")</code></pre>
+    print(f"Turns: {res_query['turns']} | Time: {res_query['duration']}s | Output: {res_query['output'].strip()[:80]}...")
+</code></pre>
       </div>
     </div>
 

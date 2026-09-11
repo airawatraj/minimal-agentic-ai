@@ -18,7 +18,18 @@ def _load_env():
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)
-                    os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+                    k = k.strip()
+                    v = v.strip()
+                    if v.startswith(('"', "'")):
+                        quote = v[0]
+                        end_idx = v.find(quote, 1)
+                        v = v[1:end_idx] if end_idx != -1 else v.strip(quote)
+                    else:
+                        for sep in (" #", "\t#"):
+                            if sep in v:
+                                v = v.split(sep, 1)[0]
+                        v = v.strip()
+                    os.environ.setdefault(k, v)
             break
 
 _load_env()

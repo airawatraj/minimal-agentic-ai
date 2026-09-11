@@ -353,9 +353,9 @@
 <div class="wizard-container">
   <!-- Header -->
   <div class="wizard-header">
-    <span class="badge-tag">Production Engineering Walkthrough</span>
-    <h1>Minimal Agentic AI: The First-Principles Guide</h1>
-    <p>Construct production-grade agents using bare-metal Python loops, typed graphs, and deterministic guardrails.</p>
+    <span class="badge-tag">Hands-On Starter Kit</span>
+    <h1>Minimal Agentic AI: First Principles & Core Mechanics</h1>
+    <p>Understand tool calling, state machines, and evaluation loops using lightweight native Python.</p>
   </div>
 
   <!-- Stepper Tabs -->
@@ -385,33 +385,26 @@
 
     <!-- STEP 0 -->
     <div class="step-pane active" id="step-0">
-      <h2>Step 0: The Naked Truth & The Notebook Fallacy</h2>
-      <div class="critique-box">
-        <strong>The Industry Anti-Pattern:</strong> Over-engineered multi-agent frameworks (CrewAI, AutoGen, legacy LangChain) add layers of abstraction that obscure runtime behavior. In production, agents are simple software systems.
+      <h2>Step 0: First Principles & Core Mechanics</h2>
+      <div class="insight-box">
+        <strong>The Design Approach:</strong> This repo uses lightweight Python scripts managed by <code>uv</code> to keep the codebase minimal, easy to run in the terminal, and directly pluggable into headless CI/CD eval pipelines.
       </div>
 
-      <p>When stripped down to its mathematical and systems reality, an AI agent is simply:</p>
+      <p>Under the hood, an AI agent does not require heavyweight abstractions. In systems terms, an agent is composed of four foundational elements:</p>
       
       <div class="formula-banner">
-        Agent = LLM + JSON Tool Schema + Deterministic Control Loop (while loop) + Typed State
+        Agent = LLM + JSON Tool Schema + Deterministic Control Loop (while loop) + State Container
       </div>
 
-      <div class="warning-box">
-        <strong>Why You Should Avoid Jupyter Notebooks (.ipynb) for Agents:</strong>
-        <ul style="margin-top: 6px;">
-          <li><strong>Out-of-Order State Leaks:</strong> Notebooks maintain mutable global memory across cells. If an agent loops or fails halfway, running cells out of order hides state contamination.</li>
-          <li><strong>Event Loop Deadlocks:</strong> Subprocess execution (<code>subprocess.run</code>) and streaming tool calls clash with IPython's background event loop.</li>
-          <li><strong>Zero Production Parity:</strong> Real agents run as headless microservices, background task workers, or CI/CD runners. Developing in standalone <code>.py</code> scripts executed via <code>uv run</code> ensures exact production alignment.</li>
-        </ul>
-      </div>
+      <p>This repository provides a hands-on, unpretentious starter kit designed to help you understand how tool calling and state loops work under the hood using native Python.</p>
 
-      <h3>The 5 Core Disciplines You Will Master:</h3>
+      <h3>What This Repo Provides (5 Self-Contained Steps):</h3>
       <ol>
-        <li><strong>Dynamic Schema Reflection:</strong> Auto-generating wire protocols from Python signatures without hand-rolled JSON.</li>
-        <li><strong>Parallel Tool Dispatch:</strong> Executing independent tool calls concurrently rather than sequentially.</li>
-        <li><strong>Asynchronous State Suspension:</strong> Suspending state to disk for human approval instead of blocking processes with <code>input()</code>.</li>
-        <li><strong>Context Hygiene & Eviction:</strong> Preventing token degradation through defensive SQL boundaries and scratchpad eviction.</li>
-        <li><strong>Deterministic Testing:</strong> Programmatic assertions to benchmark accuracy, security refusal, and latency.</li>
+        <li><strong>Dynamic Schema Reflection & Parallel Tools:</strong> Auto-generating wire protocols from Python signatures and executing concurrent tool calls with <code>ThreadPoolExecutor</code>.</li>
+        <li><strong>Typed State Graphs & Suspension:</strong> Suspending state to disk for asynchronous human approval without blocking runtime threads.</li>
+        <li><strong>Context Hygiene & Compaction:</strong> Defensive database boundaries, Markdown table formatting, and scratchpad eviction.</li>
+        <li><strong>Deterministic Testing:</strong> Programmatic assertions to benchmark accuracy, refusal defenses, and latency.</li>
+        <li><strong>Hardened Latency Optimizations:</strong> Cached schema inlining, Turn-0 regex fast paths, and cumulative token budgets.</li>
       </ol>
     </div>
 
@@ -419,7 +412,7 @@
     <div class="step-pane" id="step-1">
       <h2>Step 1: The Bare-Metal ReAct Loop & Parallel Execution</h2>
       <div class="insight-box">
-        <strong>Key Innovation:</strong> Modern inference models frequently emit multiple tool calls simultaneously (e.g. fetching two records at once). We use <code>concurrent.futures.ThreadPoolExecutor</code> to execute independent tool calls concurrently rather than serially.
+        <strong>Key Mechanism:</strong> Modern inference models frequently emit multiple tool calls simultaneously (e.g. fetching two records at once). We use <code>concurrent.futures.ThreadPoolExecutor</code> to execute independent tool calls concurrently rather than serially.
       </div>
 
       <p>This script connects directly to your local OpenAI-compatible endpoint. It handles schema generation via <code>inspect</code>, executes parallel tool calls concurrently, and catches exceptions like <code>ZeroDivisionError</code> so the model can self-correct.</p>
@@ -556,11 +549,11 @@ else:
     <!-- STEP 2 -->
     <div class="step-pane" id="step-2">
       <h2>Step 2: Typed State Graphs & Asynchronous Suspension</h2>
-      <div class="critique-box">
-        <strong>The Anti-Pattern (Blocking input()):</strong> In naive scripts, human approval uses <code>input()</code>. In production servers or webhooks, you cannot hold an open Python thread waiting for human input. If the container restarts or times out, state is lost.
+      <div class="insight-box">
+        <strong>Design Consideration (Non-Blocking HITL):</strong> In basic scripts, human approval often uses <code>input()</code>. In background workers or webhooks, holding an open Python thread waiting for human input is fragile—if the process restarts or times out, state is lost.
       </div>
 
-      <p><strong>The Production Pattern (State Suspension):</strong> When a dangerous operation is generated, the agent sets <code>status = "SUSPENDED_AWAITING_APPROVAL"</code>, serializes its state to disk/Redis with <code>state.model_dump_json()</code>, and exits cleanly. An external webhook or human review re-instantiates the Pydantic model and resumes execution.</p>
+      <p><strong>The Solution (State Suspension):</strong> When a sensitive operation is generated, the agent sets <code>status = "SUSPENDED_AWAITING_APPROVAL"</code>, serializes its state to disk with <code>state.model_dump_json()</code>, and exits cleanly. An external webhook, review tool, or script re-instantiates the Pydantic model and resumes execution.</p>
 
       <div class="code-container">
         <div class="code-header">
@@ -749,11 +742,11 @@ if __name__ == "__main__":
     <!-- STEP 3 -->
     <div class="step-pane" id="step-3">
       <h2>Step 3: Context Hygiene & Compaction</h2>
-      <div class="critique-box">
-        <strong>The Anti-Pattern:</strong> Dumps of raw JSON or 15KB of HTML degrade attention ("lost-in-the-middle" effect) and slow DGX local inference.
+      <div class="insight-box">
+        <strong>Context Consideration:</strong> Raw JSON dumps or large payloads degrade model attention ("lost-in-the-middle" effect) and increase latency and token costs.
       </div>
 
-      <p>This implementation runs an in-memory SQLite sandbox with 3 essential tool hygiene principles:</p>
+      <p>This implementation runs an in-memory SQLite sandbox with 3 practical context management techniques:</p>
       <ol>
         <li><strong>Defensive Tool Boundaries:</strong> Mutations (<code>DROP, DELETE, UPDATE</code>) are blocked in Python before reaching SQLite.</li>
         <li><strong>Markdown Compaction:</strong> SQL rows are rendered into dense Markdown tables capped at 5 rows maximum.</li>
@@ -900,7 +893,7 @@ if __name__ == "__main__":
     <div class="step-pane" id="step-4">
       <h2>Step 4: Deterministic Automated Evaluations</h2>
       <div class="insight-box">
-        <strong>The Rule:</strong> Never rely on subjective "vibe checks." An agent pipeline must be validated by programmatic assertions covering tool accuracy, adversarial defenses, and turn limits.
+        <strong>Evaluation Principle:</strong> Programmatic assertions validate tool selection accuracy, security defenses, and turn limits deterministically, providing objective signal for CI/CD pipelines.
       </div>
 
       <p>Here is the golden test suite scorecard achieved against Cogni-Brain:</p>
@@ -1172,9 +1165,9 @@ if __name__ == "__main__":
 
     <!-- STEP 5 -->
     <div class="step-pane" id="step-5">
-      <h2>Step 5: Hardened Production Optimizations</h2>
+      <h2>Step 5: Latency & Cost Optimizations</h2>
       <div class="insight-box">
-        <strong>The Latency Solutions:</strong>
+        <strong>Latency & Cost Considerations:</strong>
         <ul style="margin-top: 6px;">
           <li><strong>Schema Inlining:</strong> Eliminates the dynamic schema discovery tool turn, slashing typical latency from 7.2s down to ~3.2s.</li>
           <li><strong>Turn-0 Regex Guard:</strong> Catches destructive SQL attacks in microseconds without firing an LLM completion.</li>

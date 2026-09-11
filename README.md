@@ -1,11 +1,16 @@
 # Minimal Agentic AI: First-Principles Production Engineering
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Managed with uv](https://img.shields.io/badge/managed%20with-uv-purple.svg)](https://github.com/astral-sh/uv)
-[![CI Evals](https://github.com/airawatraj/minimal-agentic-ai/actions/workflows/evals.yml/badge.svg)](https://github.com/airawatraj/minimal-agentic-ai/actions/workflows/evals.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Live Course](https://img.shields.io/badge/Live%20Course-GitHub%20Pages-2563eb.svg?style=flat-square&logo=github)](https://airawatraj.github.io/minimal-agentic-ai/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg?style=flat-square)](https://www.python.org/)
+[![Managed with uv](https://img.shields.io/badge/managed%20with-uv-purple.svg?style=flat-square)](https://github.com/astral-sh/uv)
+[![CI Evals](https://github.com/airawatraj/minimal-agentic-ai/actions/workflows/evals.yml/badge.svg?style=flat-square)](https://github.com/airawatraj/minimal-agentic-ai/actions/workflows/evals.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+> 🚀 **Live Interactive Course**: Launch the full 6-step engineering wizard directly in your browser:  
+> 👉 **[https://airawatraj.github.io/minimal-agentic-ai/](https://airawatraj.github.io/minimal-agentic-ai/)**
 
 A zero-bloat, bare-metal framework for building production-grade autonomous agents using standard library constructs, native OpenAI wire protocol, typed Pydantic state graphs, and deterministic evaluation suites.
+
 
 No LangChain. No AutoGen. No CrewAI. Just clean, observable systems software.
 
@@ -160,14 +165,19 @@ uv run python src/eval_agent.py
 uv run python src/optimized_eval_agent.py
 ```
 
-### 4. Interactive Engineering Course (GitHub Pages)
-The full interactive walkthrough with light-mode stepper UI and copyable snippets is located in `docs/index.html`.
+### 4. Interactive Engineering Course (Live Web App)
+Experience the complete 6-step interactive course directly in your browser:
 
-To preview locally:
+🌐 **[https://airawatraj.github.io/minimal-agentic-ai/](https://airawatraj.github.io/minimal-agentic-ai/)**
+
+> **Note**: Clicking `docs/index.html` inside GitHub's code explorer displays the raw source code. Use the live GitHub Pages link above to view the rendered interactive wizard with live step navigation and syntax highlighting.
+
+To preview locally on your machine:
 ```bash
 python -m http.server -d docs 8080
 # Open http://localhost:8080 in your browser
 ```
+
 
 ---
 

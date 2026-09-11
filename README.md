@@ -13,7 +13,14 @@ A practical, unpretentious starter kit designed to help developers understand ho
 
 This repo uses lightweight Python scripts managed by `uv` to keep the codebase minimal, easy to run in the terminal, and directly pluggable into headless CI/CD eval pipelines.
 
+### What "Minimal" Means in This Repository:
+
+* **Minimal Abstraction**: Direct OpenAI wire protocol. Zero agent frameworks, zero custom wrapper classes, no hidden magic.
+* **Minimal Dependencies**: Built on pure Python and the standard library, using only `openai` for network I/O and `pydantic` for typed state serialization.
+* **Not Minimal in Capability**: Unlike toy tutorials that stop at a single while loop, this primer implements the full production lifecycle: parallel dispatch, persistent state suspension, token hygiene, and deterministic CI evaluation.
+
 ---
+
 
 ## What an Agent is Under the Hood
 

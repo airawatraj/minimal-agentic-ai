@@ -398,6 +398,16 @@
 
       <p>This repository provides a hands-on, unpretentious starter kit designed to help you understand how tool calling and state loops work under the hood using native Python.</p>
 
+      <div class="insight-box">
+        <strong>What "Minimal" Means in This Project:</strong>
+        <ul style="margin-top: 6px; margin-left: 18px;">
+          <li><strong>Minimal Abstraction:</strong> Direct OpenAI wire protocol. Zero agent frameworks, zero custom wrapper classes, no hidden magic.</li>
+          <li><strong>Minimal Dependencies:</strong> Built on pure Python and the standard library, using only <code>openai</code> for network I/O and <code>pydantic</code> for typed state serialization.</li>
+          <li><strong>Not Minimal in Capability:</strong> Unlike toy tutorials that stop at a single while loop, this primer implements the full production lifecycle: parallel dispatch, persistent state suspension, token hygiene, and deterministic CI evaluation.</li>
+        </ul>
+      </div>
+
+
       <h3>What This Repo Provides (5 Self-Contained Steps):</h3>
       <ol>
         <li><strong>Dynamic Schema Reflection & Parallel Tools:</strong> Auto-generating wire protocols from Python signatures and executing concurrent tool calls with <code>ThreadPoolExecutor</code>.</li>

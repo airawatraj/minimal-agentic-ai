@@ -31,5 +31,7 @@ jobs:
           COGNI_BASE_URL: ${{ secrets.COGNI_BASE_URL || 'http://localhost:8000/v1' }}
           COGNI_API_KEY: ${{ secrets.COGNI_API_KEY || 'none' }}
           COGNI_MODEL: ${{ secrets.COGNI_MODEL || 'Cogni-Brain' }}
+          MOCK_EVAL: ${{ secrets.COGNI_BASE_URL != '' && '0' || '1' }}
         run: uv run python src/eval_agent.py
+
 

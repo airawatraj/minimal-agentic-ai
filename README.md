@@ -138,13 +138,17 @@ uv sync
 ```
 
 ### 2. Environment Configuration
-By default, all scripts target the local endpoint (`http://192.168.20.91:8000/v1` with model `Cogni-Brain`). You can configure any OpenAI-compatible provider:
+By default, all scripts target the local endpoint (`http://localhost:8000/v1` with model `Cogni-Brain`). You can configure your endpoint via environment variables or copy `.env.example`:
 
 ```bash
-export OPENAI_BASE_URL="https://api.openai.com/v1"
-export OPENAI_API_KEY="your-api-key"
-export OPENAI_MODEL="gpt-4o-mini"
+cp .env.example .env
+
+# Or export directly:
+export COGNI_BASE_URL="http://localhost:8000/v1"
+export COGNI_API_KEY="none"
+export COGNI_MODEL="Cogni-Brain"
 ```
+
 
 ### 3. Running the Agent Scripts
 

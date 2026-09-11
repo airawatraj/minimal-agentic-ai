@@ -435,14 +435,11 @@ import json
 import os
 from openai import OpenAI
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "http://192.168.20.91:8000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "none")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "Cogni-Brain")
-
 client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY,
+    base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("COGNI_API_KEY", "none"),
 )
+MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
 
 # --- 1. Tool Registry ---
 def add_numbers(a: float, b: float) -> str:
@@ -579,14 +576,11 @@ from typing import Literal, Optional
 from openai import OpenAI
 from pydantic import BaseModel
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "http://192.168.20.91:8000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "none")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "Cogni-Brain")
-
 client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY,
+    base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("COGNI_API_KEY", "none"),
 )
+MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
 
 STATE_FILE = Path("agent_checkpoint.json")
 
@@ -778,14 +772,11 @@ import sqlite3
 from typing import List
 from openai import OpenAI
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "http://192.168.20.91:8000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "none")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "Cogni-Brain")
-
 client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY,
+    base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("COGNI_API_KEY", "none"),
 )
+MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
 
 # --- 1. SQLite In-Memory Setup ---
 conn = sqlite3.connect(":memory:")
@@ -966,14 +957,11 @@ from typing import Any, Callable, Dict, List
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "http://192.168.20.91:8000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "none")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "Cogni-Brain")
-
 client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY,
+    base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("COGNI_API_KEY", "none"),
 )
+MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
 
 # --- 1. Database & Tools Setup ---
 def init_db():
@@ -1209,14 +1197,11 @@ from typing import List
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "http://192.168.20.91:8000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "none")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "Cogni-Brain")
-
 client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY,
+    base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("COGNI_API_KEY", "none"),
 )
+MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
 
 # 1. Sandbox Database Fixture
 conn = sqlite3.connect(":memory:")

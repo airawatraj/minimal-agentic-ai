@@ -5,14 +5,12 @@ import sqlite3
 from typing import List
 from openai import OpenAI
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "http://192.168.20.91:8000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "none")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "Cogni-Brain")
-
 client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY,
+    base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("COGNI_API_KEY", "none"),
 )
+MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
 
 # --- 1. SQLite In-Memory Setup ---
 def create_connection():

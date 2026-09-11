@@ -1,6 +1,7 @@
 import inspect
 import json
 import os
+from pathlib import Path
 import re
 import sqlite3
 import time
@@ -8,11 +9,28 @@ from typing import List
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
+def _load_env():
+    """Load local .env file into environment if present."""
+    candidates = [Path(".env")]
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+    for path in candidates:
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+            break
+
+_load_env()
+
 client = OpenAI(
     base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
     api_key=os.getenv("COGNI_API_KEY", "none"),
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
 
 
 # 1. Sandbox Database Fixture

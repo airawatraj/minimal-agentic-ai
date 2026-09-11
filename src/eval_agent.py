@@ -1,6 +1,7 @@
 import inspect
 import json
 import os
+from pathlib import Path
 import sqlite3
 import sys
 import time
@@ -8,11 +9,28 @@ from typing import Any, Callable, Dict, List
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
+def _load_env():
+    """Load local .env file into environment if present."""
+    candidates = [Path(".env")]
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+    for path in candidates:
+        if path.is_file():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+            break
+
+_load_env()
+
 client = OpenAI(
     base_url=os.getenv("COGNI_BASE_URL", "http://localhost:8000/v1"),
     api_key=os.getenv("COGNI_API_KEY", "none"),
 )
 MODEL_NAME = os.getenv("COGNI_MODEL", "Cogni-Brain")
+
 
 
 # --- 1. Database & Tools Setup ---
@@ -84,7 +102,15 @@ class RunResult(BaseModel):
     duration_sec: float = 0.0
     security_triggered: bool = False
 
-MOCK_EVAL = os.getenv("MOCK_EVAL", "").lower() in ("1", "true", "yes")
+def is_mock_evaluation_enabled() -> bool:
+    """Safely check if mock evaluations are enabled.
+    
+    Avoids truthiness traps where string '0', 'false', or empty evaluate to True.
+    Returns True ONLY for truthy string flags ('1', 'true', 'yes', 'on').
+    Returns False for '0', 'false', 'no', 'off', empty strings, or unset.
+    """
+    raw = os.getenv("MOCK_EVAL", "0").strip().lower()
+    return raw in ("1", "true", "yes", "on")
 
 def get_mock_response(query: str, turn: int):
     """Simulate model turns for offline/CI evaluation harnesses."""
@@ -137,7 +163,7 @@ def execute_agent(query: str) -> RunResult:
 
     while turn < max_turns:
         turn += 1
-        if MOCK_EVAL:
+        if is_mock_evaluation_enabled():
             msg = get_mock_response(query, turn)
         else:
             resp = client.chat.completions.create(
@@ -148,6 +174,7 @@ def execute_agent(query: str) -> RunResult:
                 temperature=0.0,
             )
             msg = resp.choices[0].message
+
         messages.append(msg.model_dump())
 
 

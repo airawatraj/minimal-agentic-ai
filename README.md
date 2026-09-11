@@ -90,7 +90,7 @@ cp .env.example .env
 uv run src/agent.py
 ```
 
-> **Note**: `uv sync` automatically provisions `.venv/` and locks dependencies directly from `pyproject.toml`. If you prefer manual activation, you can run `source .venv/bin/activate`, or install in editable mode with `uv pip install -e .`.
+> **Note**: `uv sync` automatically provisions `.venv/` and locks dependencies directly from `pyproject.toml`. Each script automatically reads configurations from `.env` if present (or you can pass `uv run --env-file .env <script>`).
 
 
 ### 2. Environment & Model Compatibility

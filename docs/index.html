@@ -406,6 +406,26 @@
         <li><strong>Deterministic Testing:</strong> Programmatic assertions to benchmark accuracy, refusal defenses, and latency.</li>
         <li><strong>Hardened Latency Optimizations:</strong> Cached schema inlining, Turn-0 regex fast paths, and cumulative token budgets.</li>
       </ol>
+
+      <h3>Quickstart Setup via uv:</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>bash</span>
+          <button class="copy-btn" onclick="copyCode('code-quickstart')">Copy Code</button>
+        </div>
+        <pre><code class="language-bash" id="code-quickstart"># Clone repository
+git clone https://github.com/airawatraj/minimal-agentic-ai.git
+cd minimal-agentic-ai
+
+# Automatically create .venv and install all dependencies
+uv sync
+
+# Copy environment template
+cp .env.example .env
+
+# Run the ReAct agent
+uv run src/agent.py</code></pre>
+      </div>
     </div>
 
     <!-- STEP 1 -->

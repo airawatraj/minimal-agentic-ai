@@ -80,9 +80,8 @@ flowchart TD
 git clone https://github.com/airawatraj/minimal-agentic-ai.git
 cd minimal-agentic-ai
 
-# Create virtual environment and install dependencies
-uv venv && source .venv/bin/activate
-uv pip install -r pyproject.toml
+# Automatically create .venv and install all dependencies
+uv sync
 
 # Copy environment template
 cp .env.example .env
@@ -90,6 +89,9 @@ cp .env.example .env
 # Run the ReAct agent
 uv run src/agent.py
 ```
+
+> **Note**: `uv sync` automatically provisions `.venv/` and locks dependencies directly from `pyproject.toml`. If you prefer manual activation, you can run `source .venv/bin/activate`, or install in editable mode with `uv pip install -e .`.
+
 
 ### 2. Environment & Model Compatibility
 
